@@ -1,3 +1,5 @@
+import random
+
 from dataloader.dataset import SequencedDataset
 import torch
 from torch.autograd import Variable
@@ -8,48 +10,76 @@ import os
 import matplotlib.pyplot as plt
 
 
-def load_dataset(opt, samples=None, print_samples=False):
+def _split_samples_train_test(samples, list_of_test_towns):
+    test_samples = list()
+    train_samples = list()
+
+    for sample in samples:
+        town_name, _ = sample
+        if any(test_town in town_name for test_town in list_of_test_towns):
+            test_samples.append(sample)
+        else:
+            train_samples.append(sample)
+
+    return train_samples, test_samples
+
+
+def load_dataset(opt, print_samples=False):
     # can be all(100%), small(20%), tiny(2%)
     # samples is none only if user wants to train without extracting the dataset, possibly on a tiny dataset
-    train_prop = opt.train_test_ratio / (opt.train_test_ratio + 1)
     train_is_test = opt.train_is_test
+    size = opt.train_on
+    if size == "all":
+        size = 1
+    elif size == "small":
+        size = 0.2
+    elif size == "tiny":
+        size = 0.02
 
-    if samples is not None:
-        if train_is_test:
-            train_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
-                                          samples)
-            test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
-                                         samples)
-        else:
-            train_last_idx = train_prop * len(samples)
-            train_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past,
-                                          opt.channels == 1, samples=samples[:train_last_idx])
-            test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past,
-                                         opt.channels == 1, samples=samples[train_last_idx:])
+    train_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1)
+    all_samples = train_data.samples
+
+    if train_is_test:
+        print("Train is Test! Train and test set will be the same.")
+        print("So, no town splits...")
+        # then the samples will not be split wrt towns
+        interested_samples = all_samples[:int(len(all_samples) * size)]
+        train_data.samples = interested_samples
+        test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
+                                     samples=interested_samples)
+
+    # if you know which towns will be in the test set
+    elif opt.test_towns is not None:
+        print(f"Test towns are provided as: {opt.test_towns}")
+        print("Splitting accordingly...")
+        # split all data into train and test according to the test towns specified in opt
+        train_samples, test_samples = _split_samples_train_test(all_samples, opt.test_towns)
+        random.seed(447)
+        # shuffle the lists so that if the model is not trained on the full set,
+        # the sample distribution across datasets are balanced
+        random.shuffle(train_samples)
+        random.shuffle(test_samples)
+        # take the specified portion
+        train_samples = train_samples[:int(len(train_samples) * size)]
+        test_samples = test_samples[:int(len(test_samples) * size)]
+        print(f"Total number of training sequences: {len(train_samples)}")
+        print(f"Total number of testing sequences: {len(test_samples)}")
+        # assign the samples to the datasets
+        train_data.samples = train_samples
+        test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
+                                     samples=test_samples)
     else:
-        size = opt.train_on
-        if size == "all":
-            size = 1
-        elif size == "small":
-            size = 0.2
-        elif size == "tiny":
-            size = 0.02
-
-        if train_is_test:
-            train_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1)
-            all_samples = train_data.samples
-            interested_samples = all_samples[:int(len(all_samples) * size)]
-            train_data.samples = interested_samples
-            test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
-                                         samples=interested_samples)
-        else:
-            train_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1)
-            all_samples = train_data.samples
-            interested_samples = all_samples[:int(len(all_samples) * size)]
-            train_last_idx = int(train_prop * len(interested_samples))
-            train_data.samples = interested_samples[:train_last_idx]
-            test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
-                                         samples=interested_samples[train_last_idx:])
+        # split wrt to the proportion specified
+        # do not shuffle this time, to not copy from train set
+        # still as the towns are shared this method is not good
+        print("Train is not test, and no test towns provided.")
+        print("Splitting only according to the proportions...")
+        train_prop = opt.train_test_ratio / (opt.train_test_ratio + 1)
+        interested_samples = all_samples[:int(len(all_samples) * size)]
+        train_last_idx = int(train_prop * len(interested_samples))
+        train_data.samples = interested_samples[:train_last_idx]
+        test_data = SequencedDataset(opt.data_root, opt.n_past + opt.n_future, opt.n_past, opt.channels == 1,
+                                     samples=interested_samples[train_last_idx:])
 
     return train_data, test_data
 
@@ -249,3 +279,10 @@ def clear_progressbar():
     print("\033[2K")
     # moves up two lines again
     print("\033[2A")
+
+from types import SimpleNamespace
+with open("config.json", "r") as file:
+    opt = json.load(file)
+    opt = SimpleNamespace(**opt)
+
+load_dataset(opt, None)

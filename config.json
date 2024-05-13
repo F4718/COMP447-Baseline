@@ -17,6 +17,7 @@
   "train_test_ratio": 9,
   "train_on": "all",
   "train_is_test": false,
+  "test_towns": ["Town02", "Town06"],
   "n_past": 2,
   "n_future": 10,
   "n_eval": 12,

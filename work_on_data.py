@@ -2,12 +2,12 @@ from data_preprocess.preprocess_data import preprocess_bevs_and_waypoints, get_d
 
 
 data_path = "./data/"
-play_preprocess = False
+preprocess = False
 play_delta_histogram = False
 play_create_delta_bins = True
 
 
-if play_preprocess:
+if preprocess:
     inp = input("Dont accidentally do sth stupid :).\nWant to continue? (y): ")
     if inp == "y":
         print("Resizing images and extracting delta waypoints begins...\n")
