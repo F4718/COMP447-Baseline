@@ -85,9 +85,54 @@ def get_delta_waypoints_histogram(data_path, num_of_bins, show_plots=True, save_
     return delta_x_values, delta_y_values
 
 
+def _create_bins(min_limit, max_limit, num_bins):
+    full_delta = max_limit - min_limit
+    bin_size = full_delta / num_bins
+
+    limits = list()
+    for i in range(num_bins + 1):
+        cur_limit = min_limit + (i * bin_size)
+        limits.append(cur_limit)
+    return limits
+
+
 def create_xy_bins(min_delta, max_delta, num_of_bins):
+    # includes a special bin for the 0 case
+
+    # num_of_bins must be odd bc 0 case
     num_x_bins = num_of_bins[0]
     num_y_bins = num_of_bins[1]
+    assert (num_x_bins % 2 == 1) and (num_y_bins % 2 == 1), "Num of bins must be odd!"
+    epsilon = 1e-5
+
+    half_num_x_bins = (num_x_bins // 2) - 1  # if 13 -> 5
+    half_num_y_bins = (num_y_bins // 2) - 1
+
+    x_left = _create_bins(min_delta, 0, half_num_x_bins)
+    x_right = _create_bins(0, max_delta, half_num_x_bins)
+    x_left[-1] = 0 - epsilon
+    x_right[0] = 0 + epsilon
+    x_bin_limits = x_left + x_right
+    assert len(x_bin_limits) == num_x_bins - 1
+
+    y_left = _create_bins(min_delta, 0, half_num_y_bins)
+    y_right = _create_bins(0, max_delta, half_num_y_bins)
+    y_left[-1] = 0 - epsilon
+    y_right[0] = 0 + epsilon
+    y_bin_limits = y_left + y_right
+    assert len(y_bin_limits) == num_x_bins - 1
+
+    return x_bin_limits, y_bin_limits
+
+
+# another old version
+def __create_xy_bins(min_delta, max_delta, num_of_bins):
+    # includes a special bin for the 0 case
+
+    # num_of_bins must be odd bc 0 case
+    num_x_bins = num_of_bins[0]
+    num_y_bins = num_of_bins[1]
+    assert (num_x_bins % 2 == 0) and (num_y_bins % 2 == 0), "Num of bins must be odd!"
 
     x_bin_separations = [min_delta]
     y_bin_separations = [min_delta]
