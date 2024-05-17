@@ -24,7 +24,7 @@ def _split_samples_train_test(samples, list_of_test_towns):
     return train_samples, test_samples
 
 
-def load_dataset(opt, print_samples=False):
+def load_dataset(opt):
     # can be all(100%), small(20%), tiny(2%)
     # samples is none only if user wants to train without extracting the dataset, possibly on a tiny dataset
     train_is_test = opt.train_is_test
@@ -285,4 +285,4 @@ with open("config.json", "r") as file:
     opt = json.load(file)
     opt = SimpleNamespace(**opt)
 
-load_dataset(opt, None)
+load_dataset(opt)
