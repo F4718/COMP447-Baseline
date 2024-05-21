@@ -3,7 +3,7 @@
   "beta1": 0.9,
   "batch_size": 29,
   "log_dir": "logs",
-  "model_dir": "logs/road_only_all/model=128x128-rnn_size=512-predictor-posterior-prior-rnn_layers=2-1-1-n_past=2-n_future=10-lr=0.0003-g_dim=128-z_dim=64-last_frame_skip=False-beta=0.0001000/continued",
+  "model_dir": "logs/road_only_all/model=128x128-rnn_size=512-predictor-posterior-prior-rnn_layers=2-1-1-n_past=2-n_future=10-lr=0.0003-g_dim=128-z_dim=64-last_frame_skip=False-beta=0.0001000/",
   "name": "",
   "data_root": "data",
   "preprocess_data": false,

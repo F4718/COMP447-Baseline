@@ -92,12 +92,10 @@ def normalize_data(dtype1, dtype2, sequence):
     return frames.type(dtype1), actions.type(dtype2)
 
 
+# #############################################!!!  !!!##############################################
 def sequence_input(seq, dtype):
     return [Variable(x.type(dtype)) for x in seq]
 
-
-# USED IN TRAIN SVG-LP
-# #############################################!!! MODIFY DOWN ##############################################
 def init_weights(m):
     classname = m.__class__.__name__
     if classname == 'ConvLSTMCell' or classname == 'ConvLSTM' or classname == 'ConvGaussianLSTM':
@@ -108,7 +106,7 @@ def init_weights(m):
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
-# #############################################!!! MODIFY UP ##############################################
+# #############################################!!!  !!!##############################################
 
 
 def save_loss(loss_f_name, train_minibatch_losses, eval_batch_losses):
@@ -280,9 +278,3 @@ def clear_progressbar():
     # moves up two lines again
     print("\033[2A")
 
-from types import SimpleNamespace
-with open("config.json", "r") as file:
-    opt = json.load(file)
-    opt = SimpleNamespace(**opt)
-
-load_dataset(opt)
