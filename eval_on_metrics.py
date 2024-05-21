@@ -28,7 +28,9 @@ def main():
     # load model and evaluate the model at that checkpoint
     map_loc = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     saved_model = torch.load('%s/model.pth' % opt.model_dir, map_location=map_loc)
+    bs = opt.batch_size
     opt = saved_model['opt']
+    opt.batch_size = bs
 
     # print(opt)
     # input("Do you want to continue? If not ctrl+c")
@@ -145,6 +147,7 @@ def main():
         :return: float: ssim
         """
         pred = pred.float()
+        pred = pred.clamp(0, 1)
         gt = gt.float()
         ssim_value = ssim(pred, gt, kernel_size=11, data_range=1.0, reduction="mean")
 
