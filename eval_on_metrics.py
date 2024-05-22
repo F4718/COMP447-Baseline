@@ -115,8 +115,8 @@ def main():
         """
         if standard:
             scale = 1.0 / gt.max()
-            gt *= scale
-            pred *= scale
+            gt = gt * scale
+            pred = pred * scale
 
             threshold = 0.3
             gt = gt > threshold
@@ -147,7 +147,6 @@ def main():
         :return: float: ssim
         """
         pred = pred.float()
-        pred = pred.clamp(0, 1)
         gt = gt.float()
         ssim_value = ssim(pred, gt, kernel_size=11, data_range=1.0, reduction="mean")
 
@@ -184,8 +183,9 @@ def main():
                 x_pred = decoder([h, skip])
 
                 mse.append(reconstruction_criterion(x_pred, x[i]))
-                miou.append(calculate_mean_iou(x_pred, x[i], True))
-                ssim.append(calculate_ssim(x_pred, x[i]))
+
+                miou.append(calculate_mean_iou(x_pred.clamp(0, 1), x[i].clamp(0, 1), True))
+                ssim.append(calculate_ssim(x_pred.clamp(0, 1), x[i].clamp(0, 1)))
 
         return torch.tensor(mse), torch.tensor(miou), torch.tensor(ssim)
 
