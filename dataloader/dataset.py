@@ -30,6 +30,9 @@ class CollateFunction:
         y_indices = y_indices * self.num_x_bins
 
         discretized_waypoints = (x_indices + y_indices).permute(1, 0, 2).int()  # Invert the bs and seq_len
+
+        # seq_len * bs * c * h * w
+        # seq_len * bs * 8
         batch = {"frames": frames, "actions": discretized_waypoints}
 
         return batch

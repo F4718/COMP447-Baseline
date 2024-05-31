@@ -110,7 +110,6 @@ def main():
         """
         :param gt: tensor(bs * c * h * w) gt for n'th PREDICTION sequence, over all minibatch elements
         :param pred: tensor(bs * c * h * w) preds for n'th PREDICTION sequence, over all minibatch elements
-        :param pred: bool
         :return: float: mean intersection over union
         """
         if standard:
