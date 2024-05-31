@@ -161,8 +161,9 @@ def main():
         mse = list()
         miou = list()
         ssim = list()
+        x_in = x[0].clone()
         for i in range(1, opt.n_past + opt.n_future):
-            h = encoder(x[i - 1])
+            h = encoder(x_in)
             if opt.last_frame_skip or i < opt.n_past:
                 h, skip = h
             else:
@@ -174,12 +175,14 @@ def main():
                 prior(h)
                 tiled_action = actions[i - 1]
                 frame_predictor(torch.cat([h, z_t], 1), tiled_action)
+                x_in = x[i].clone()
             else:
                 z_t, _, _ = prior(h)
                 tiled_action = actions[i - 1]
                 h = frame_predictor(torch.cat([h, z_t], 1), tiled_action)
 
                 x_pred = decoder([h, skip])
+                x_in = x_pred.clone()
 
                 mse.append(reconstruction_criterion(x_pred, x[i]))
 
